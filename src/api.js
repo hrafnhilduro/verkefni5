@@ -3,7 +3,6 @@
  * tengt hérna við "alvöru" API.
  * Sameinar statísk gögn við gögn geymd í localStorage.
  */
-
 import data from './lectures.json';
 
 // Lykill sem við geymum vistaðar færslur undir.
@@ -13,8 +12,11 @@ const LOCALSTORAGE_KEY = 'saved_lectures';
  * Sækir alla vistaða fyrirlestra í localStorage.
  * @returns {array} Fylki af slug fyrir vistaða fyrirlestra.
  */
-function loadSavedLectures() {
-  /* todo */
+export function loadSavedLectures() {
+  const savedJson = localStorage.getItem(LOCALSTORAGE_KEY);
+  const saved = JSON.parse(savedJson) || [];
+
+  return saved;
 }
 
 /**
@@ -26,7 +28,17 @@ function loadSavedLectures() {
  * @returns {array} Fylki af fyrirlestrum.
  */
 export function getLectureList(filters = []) {
-  /* todo */
+  const { lectures } = data;
+
+  const lecturesList = lectures.filter(item => filters.length === 0 || filters.indexOf(item.category) >= 0)
+
+  const saved = loadSavedLectures();
+  lecturesList.map((lecture) =>
+    (saved.indexOf(lecture.slug) >= 0 )?
+      lecture.finished = true : lecture.finished = false
+  )
+
+  return lectures.filter(item => filters.length === 0 || filters.indexOf(item.category) >= 0);
 }
 
 /**
@@ -37,7 +49,20 @@ export function getLectureList(filters = []) {
  * @returns {object} Fyrirlestri sem fannst eða null ef engin fannst.
  */
 export function getLecture(slug) {
-  /* todo */
+  const { lectures } = data;
+  const rightLecture = lectures.find(item => slug === item.slug);
+
+  const saved = loadSavedLectures();
+  if(rightLecture){
+    if( saved.indexOf(slug) >= 0 ) {
+      rightLecture.finished = true;
+    } else {
+      rightLecture.finished = false;
+    }
+    return rightLecture
+  } else {
+    return null;
+  }
 }
 
 /**
@@ -47,5 +72,15 @@ export function getLecture(slug) {
  * @param {string} slug Slug á fyrirlestri sem klára á.
  */
 export function toggleLectureFinish(slug) {
-  /* todo */
+  const saved = loadSavedLectures();
+
+  const index = saved.indexOf(slug);
+
+  if (index >= 0) {
+    saved.splice(index, 1);
+  } else {
+    saved.push(slug);
+  }
+
+  localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(saved));
 }
